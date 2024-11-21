@@ -32,7 +32,7 @@ fun HomeScreen(
     AppScaffold(
         topBar = {
             TopBar(
-                title = "HomeScreen",
+                title = "Home",
             )
         }
     ) { paddingValues ->
