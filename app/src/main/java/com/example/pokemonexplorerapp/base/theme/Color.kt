@@ -15,8 +15,6 @@ val Pink40 = Color(0xFF7D5260)
 val PaperWhite = Color(0xFFF9FAFC)
 val Sapphire = Color(0xFF173EA5)
 val MidnightBlue = Color(0xFF000029)
-
-
 val Dune = Color(0xFF333333)
 val HavelockBlue = Color(0xFF5090D6)
 val BlueEyes = Color(0xFF0B6DC3)
@@ -37,3 +35,4 @@ val SepiaOrange = Color(0xFFD97845)
 val AmethystPurple = Color(0xFFB567CE)
 val LightAzure = Color(0xFF89AAE3)
 val TomatoRed = Color(0xFFCD3131)
+val CoolGrey = Color(0xFFD6D6D6)
