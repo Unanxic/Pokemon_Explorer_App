@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.pokemonexplorerapp.base.screens.HomeScreen
+import com.example.pokemonexplorerapp.base.composables.BottomBarItems
+import com.example.pokemonexplorerapp.base.screens.AppHomeRoot
 import com.example.pokemonexplorerapp.base.screens.SplashScreen
 import com.example.pokemonexplorerapp.base.theme.animations.slideInHorizontallyTransition
 import com.example.pokemonexplorerapp.base.theme.animations.slideInOnReEnterHorizontallyTransition
@@ -19,7 +19,6 @@ import com.example.pokemonexplorerapp.base.theme.animations.slideOutHorizontally
 import com.example.pokemonexplorerapp.base.theme.animations.slideOutOnReEnterHorizontallyTransition
 import com.example.pokemonexplorerapp.utils.decideWhereToNavigateNext
 import kotlinx.coroutines.runBlocking
-import org.koin.compose.koinInject
 
 @Composable
 fun MainNavHost(
@@ -28,7 +27,7 @@ fun MainNavHost(
 ) {
 //    var currentScreen by remember { mutableStateOf<Screen>(Screen.HomeScreen) }
     val paddingValues = PaddingValues()
-//    var activeBottomBarItem by remember { mutableStateOf(ZeniBottomBarItems.HOME) }
+    var activeBottomBarItem by remember { mutableStateOf(BottomBarItems.HOME) }
     NavHost(
         modifier = modifier,
         navController = navController,
@@ -42,7 +41,13 @@ fun MainNavHost(
             SplashScreen(navController = navController)
         }
         composable(Screen.HomeScreen.route) {
-            HomeScreen(navController = navController)
+            AppHomeRoot(
+                activeBottomBarItem = activeBottomBarItem,
+                onActiveBottomBarItemChange = { newTabSelected: BottomBarItems ->
+                    activeBottomBarItem = newTabSelected
+                },
+                navController = navController
+            )
         }
     }
 }

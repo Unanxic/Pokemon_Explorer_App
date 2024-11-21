@@ -10,12 +10,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.example.pokemonexplorerapp.base.theme.PaperWhite
+import com.example.pokemonexplorerapp.base.theme.CoolGrey
 
 @Composable
 fun AppScaffold(
     modifier: Modifier = Modifier,
-    background: @Composable () -> Unit = { WhiteBackground() },
+    background: @Composable () -> Unit = { GreyBackground() },
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = { Box(modifier = Modifier.navigationBarsPadding()) },
     content: @Composable (paddingValues: PaddingValues) -> Unit,
@@ -36,10 +36,10 @@ fun AppScaffold(
 }
 
 @Composable
-fun WhiteBackground() {
+fun GreyBackground() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PaperWhite)
+            .background(CoolGrey)
     )
 }

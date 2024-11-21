@@ -26,7 +26,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.pokemonexplorerapp.base.theme.CoolGrey
+import com.example.pokemonexplorerapp.base.theme.DarkGrey
 
 @Composable
 fun GenericOutlinedTextField(
@@ -105,12 +105,12 @@ enum class AppColors(val colors: @Composable () -> TextFieldColors) {
                focusedContainerColor = Color.Transparent,
                unfocusedContainerColor = Color.Transparent,
                // Unfocused
-               unfocusedBorderColor = CoolGrey,
+               unfocusedBorderColor = DarkGrey,
                unfocusedLabelColor = White,
                unfocusedPlaceholderColor = Black.copy(alpha = .5f),
                unfocusedTextColor = Black,
                // Focused
-               focusedBorderColor = CoolGrey,
+               focusedBorderColor = DarkGrey,
                focusedLabelColor = White,
                focusedPlaceholderColor = Black.copy(alpha = 0.5f),
                focusedTextColor = Black,
@@ -122,9 +122,9 @@ enum class AppColors(val colors: @Composable () -> TextFieldColors) {
                errorTextColor = White,
                // Disabled
                disabledBorderColor = White.copy(alpha = 0.2f),
-               disabledLabelColor = CoolGrey,
-               disabledPlaceholderColor = CoolGrey,
-               disabledTextColor = CoolGrey,
+               disabledLabelColor = DarkGrey,
+               disabledPlaceholderColor = DarkGrey,
+               disabledTextColor = DarkGrey,
             )
         }
     )
