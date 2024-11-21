@@ -1,6 +1,8 @@
 package com.example.pokemonexplorerapp.utils
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -40,3 +42,17 @@ fun Modifier.pokeScaffoldPaddings(
             end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
         )
 }
+
+fun Modifier.setNoRippleClickable(
+    isEnabled: Boolean = true,
+    interactionSource: MutableInteractionSource = MutableInteractionSource(),
+    onClick: () -> Unit,
+): Modifier = if (isEnabled)
+    this.clickable(
+        interactionSource = interactionSource,
+        indication = null
+    ) {
+        onClick()
+    }
+else
+    this
