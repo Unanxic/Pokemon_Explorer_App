@@ -1,4 +1,4 @@
-package com.example.pokemonexplorerapp.ui.theme
+package com.example.pokemonexplorerapp.base.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -12,6 +12,11 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 //app colors
+val PaperWhite = Color(0xFFF9FAFC)
+val Sapphire = Color(0xFF173EA5)
+val MidnightBlue = Color(0xFF000029)
+
+
 val Dune = Color(0xFF333333)
 val HavelockBlue = Color(0xFF5090D6)
 val BlueEyes = Color(0xFF0B6DC3)
