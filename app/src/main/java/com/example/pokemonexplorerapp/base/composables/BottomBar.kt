@@ -72,7 +72,6 @@ fun BottomBar(
     }
 }
 
-
 @Composable
 private fun MinorIcon(
     modifier: Modifier = Modifier,
@@ -80,7 +79,7 @@ private fun MinorIcon(
     onClick: (BottomBarItems) -> Unit,
     isSelected: Boolean
 ) {
-      // Use gray icons when not selected
+    // Use gray icons when not selected
     val textColor by animateColorAsState(
         targetValue = if (isSelected) Color.Black else Color(0xFF666C7E),
         animationSpec = getDefaultTweenAnimationSpec(),
@@ -95,7 +94,7 @@ private fun MinorIcon(
             .setNoRippleClickable { onClick(item) }
     ) {
         Image(
-            painter = painterResource(id = item.iconResId),
+            painter = painterResource(id = if (isSelected) item.iconResId else item.grayIconResId),
             contentDescription = null,
             modifier = Modifier.height(30.dp),
         )
@@ -114,15 +113,19 @@ private fun MinorIcon(
 enum class BottomBarItems(
     @DrawableRes
     val iconResId: Int,
+    @DrawableRes
+    val grayIconResId: Int,
     @StringRes
     val labelResId: Int,
 ) {
     HOME(
         iconResId = R.drawable.pokeball,
+        grayIconResId = R.drawable.pokeball_gray,
         labelResId = R.string.home,
     ),
     FAVORITES(
         iconResId = R.drawable.pokeheart,
+        grayIconResId = R.drawable.pokeheart_gray,
         labelResId = R.string.favorites,
     ),
 }
