@@ -31,33 +31,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokemonexplorerapp.R
-import com.example.pokemonexplorerapp.base.theme.AmethystPurple
-import com.example.pokemonexplorerapp.base.theme.AppleGreen
-import com.example.pokemonexplorerapp.base.theme.BlueEyes
-import com.example.pokemonexplorerapp.base.theme.Dune
-import com.example.pokemonexplorerapp.base.theme.HavelockBlue
-import com.example.pokemonexplorerapp.base.theme.LightAzure
-import com.example.pokemonexplorerapp.base.theme.LightFuchsiaPink
-import com.example.pokemonexplorerapp.base.theme.MidnightBlue
-import com.example.pokemonexplorerapp.base.theme.PastelOrange
-import com.example.pokemonexplorerapp.base.theme.PetrolBlue
-import com.example.pokemonexplorerapp.base.theme.Sandstorm
 import com.example.pokemonexplorerapp.base.theme.animations.getDefaultTweenAnimationSpec
+import com.example.pokemonexplorerapp.utils.PokemonType
 import com.example.pokemonexplorerapp.utils.setNoRippleClickable
 
-enum class PokemonType(val displayName: String, val color: Color) {
-    All("All", LightAzure),
-    Fire("Fire", PastelOrange),
-    Water("Water", HavelockBlue),
-    Grass("Grass", AppleGreen),
-    Electric("Electric", Sandstorm),
-    Dragon("Dragon", BlueEyes),
-    Psychic("Psychic", LightFuchsiaPink),
-    Ghost("Ghost", MidnightBlue),
-    Dark("Dark", Dune),
-    Steel("Steel", PetrolBlue),
-    Fairy("Fairy", AmethystPurple)
-}
+
 @Composable
 fun PokemonTypeDropdown(
     modifier: Modifier = Modifier
