@@ -39,6 +39,14 @@ dependencies {
     implementation libs.koin.corex
     implementation libs.datastore
     implementation libs.kotlinx.serialization.json
+    implementation libs.moshi.retrofit
+    implementation libs.retrofit.core
+    implementation libs.retrofit.logging
+    implementation libs.moshi.retrofit
+    implementation libs.koin.corex
+    implementation libs.datastore
+    implementation libs.kotlinx.serialization.json
+    implementation libs.moshi.kotlin.core
 
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit

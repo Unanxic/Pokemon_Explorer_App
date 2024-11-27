@@ -1,14 +1,13 @@
 package com.example.pokemonexplorerapp
 
-import android.app.Activity
 import android.app.Application
-import android.os.Bundle
+import com.example.data.di.koinDependenciesData
+import com.example.domain.di.koinDependenciesDomain
 import com.example.pokemonexplorerapp.di.koinDependenciesApp
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
-import org.koin.core.logger.Level
 
 class App: Application() {
     override fun onCreate() {
@@ -18,12 +17,14 @@ class App: Application() {
 
     private fun initKoin() {
         if (GlobalContext.getKoinApplicationOrNull() == null) {
-            GlobalContext.startKoin {
+            startKoin {
                 androidLogger()
                 androidContext(this@App)
                 modules(
                     listOf(
                         koinDependenciesApp,
+                        koinDependenciesData,
+                        koinDependenciesDomain
                     )
                 )
             }

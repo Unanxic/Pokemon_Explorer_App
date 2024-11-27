@@ -33,7 +33,7 @@ dependencies {
 
     implementation libs.androidx.core.ktx
     implementation libs.koin.corex
-
+    implementation libs.moshi.kotlin.core
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core

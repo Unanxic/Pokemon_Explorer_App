@@ -23,19 +23,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.pokemonexplorerapp.R
 import com.example.pokemonexplorerapp.utils.PokemonType
+import com.example.pokemonexplorerapp.utils.capitalizeFirstLetter
 import com.example.pokemonexplorerapp.utils.setNoRippleClickable
 
 @Composable
 fun PokemonCard(
     name: String,
     types: List<PokemonType>,
+    imageUrl: String,
     onLikeClicked: (Boolean) -> Unit
 ) {
     val mainType = types.firstOrNull() ?: PokemonType.All
@@ -48,7 +52,7 @@ fun PokemonCard(
             .padding(8.dp),
         shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(
-            containerColor = mainType.color.copy(alpha = 0.5f),
+            containerColor = mainType.color.copy(alpha = 0.3f),
         )
     ) {
         Row(
@@ -58,7 +62,7 @@ fun PokemonCard(
         ) {
             // Text Section
             PokemonTextSection(
-                name = name,
+                name = name.capitalizeFirstLetter(),
                 types = types,
                 modifier = Modifier.weight(1f)
             )
@@ -68,6 +72,7 @@ fun PokemonCard(
                 color = mainType.color,
                 isFavorite = isLiked.value,
                 onFavoriteClick = { isLiked.value = it },
+                imageUrl = imageUrl
             )
         }
     }
@@ -128,6 +133,7 @@ private fun PokemonTypeBadge(type: PokemonType) {
 
 @Composable
 private fun PokemonImageCard(
+    imageUrl: String,
     color: Color,
     isFavorite: Boolean = false,
     onFavoriteClick: (Boolean) -> Unit
@@ -143,11 +149,12 @@ private fun PokemonImageCard(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "IMG",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageUrl)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize()
             )
             Box(
                 modifier = Modifier
@@ -167,14 +174,4 @@ private fun PokemonImageCard(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PokemonCardPreview() {
-    PokemonCard(
-        name = "Bulbasaur",
-        types = listOf(PokemonType.Grass, PokemonType.Steel),
-        onLikeClicked = { isLiked -> println("Liked: $isLiked") }
-    )
 }
