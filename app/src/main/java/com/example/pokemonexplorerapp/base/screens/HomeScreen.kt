@@ -54,6 +54,8 @@ fun HomeScreen(
     val hasMorePokemon by viewModel.hasMorePokemon
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
 
+    val filteredPokemonList by viewModel.filteredPokemonList.collectAsState()
+    val searchTerm by viewModel.searchTerm.collectAsState()
 
 
     AppScaffold(
@@ -77,10 +79,8 @@ fun HomeScreen(
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
                 GenericOutlinedTextField(
-                    initialValue = "",
-                    onValueChanged = { value ->
-                        // Handle text change here
-                    },
+                    initialValue = searchTerm,
+                    onValueChanged = viewModel::updateSearchTerm,
                     placeHolder = "e.g., Pikachu",
                     imeAction = ImeAction.Done,
                     trailingIconComposable = {
@@ -105,7 +105,7 @@ fun HomeScreen(
                     contentPadding = PaddingValues(vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(pokemonList) { pokemon ->
+                    items(filteredPokemonList) { pokemon ->
                         PokemonCard(
                             name = pokemon.name,
                             types = pokemon.types,
@@ -117,11 +117,11 @@ fun HomeScreen(
                     }
                     // Load More Button or Loader
                     item {
-                        if (hasMorePokemon && pokemonList.isNotEmpty()) {
-                            LoadMoreButtonOrLoader(
-                                isLoading = isLoadingMore,
-                                onLoadMore = { viewModel.fetchPokemonList() }
-                            )
+                        if (searchTerm.isEmpty() && pokemonList.isNotEmpty()) {
+                                LoadMoreButtonOrLoader(
+                                    isLoading = isLoadingMore,
+                                    onLoadMore = { viewModel.fetchPokemonList() }
+                                )
                         }
                     }
                     // Bottom Spacer

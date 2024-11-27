@@ -5,13 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.models.network.ApiError
 import com.example.domain.models.network.ApiException
-import com.example.domain.models.network.ApiLoading
 import com.example.domain.models.network.ApiNoInternetError
 import com.example.domain.models.network.ApiSuccess
 import com.example.domain.usecases.PokemonUseCase
 import com.example.pokemonexplorerapp.utils.PokemonType
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class PokemonCardUI(
@@ -23,6 +25,9 @@ data class PokemonCardUI(
 class HomeViewModel(
     private val pokemonUseCase: PokemonUseCase
 ) : ViewModel() {
+
+    private val _allPokemonNames = MutableStateFlow<List<String>>(emptyList()) // Pokémon names for search
+    private val _allPokemonDetails = MutableStateFlow<List<PokemonCardUI>>(emptyList()) // Cached Pokémon details
 
     private val _pokemonList = MutableStateFlow<List<PokemonCardUI>>(emptyList())
     val pokemonList: StateFlow<List<PokemonCardUI>> get() = _pokemonList
@@ -36,6 +41,9 @@ class HomeViewModel(
     private val _hasError = MutableStateFlow<String?>(null)
     val hasError: StateFlow<String?> get() = _hasError
 
+    private val _searchTerm = MutableStateFlow("")
+    val searchTerm: StateFlow<String> get() = _searchTerm
+
     var hasMorePokemon = mutableStateOf(true)
         private set
 
@@ -43,16 +51,74 @@ class HomeViewModel(
     private val limit = 10
 
     init {
-        fetchPokemonList()
+        viewModelScope.launch {
+            fetchAllPokemonNames() // Fetch Pokémon names
+            fetchInitialPokemonBatch() // Fetch and display the first 10 Pokémon immediately
+        }
+    }
+
+    val filteredPokemonList = combine(_allPokemonDetails, _searchTerm) { allDetails, search ->
+        if (search.isNotEmpty()) {
+            val searchLower = search.lowercase()
+            allDetails.filter { it.name.lowercase().contains(searchLower) }
+        } else {
+            _pokemonList.value
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private suspend fun fetchAllPokemonNames() {
+        _isLoading.value = true
+        try {
+            when (val result = pokemonUseCase.getPokemonList(limit = Int.MAX_VALUE, offset = 0)) {
+                is ApiSuccess -> {
+                    _allPokemonNames.value = result.data.orEmpty() // Cache Pokémon names
+                }
+                is ApiError -> _hasError.value = "Failed to fetch Pokémon names."
+                is ApiNoInternetError -> _hasError.value = "No internet connection."
+                is ApiException -> _hasError.value = "An error occurred."
+                else -> {}
+            }
+        } finally {
+            _isLoading.value = false
+        }
+        fetchAllPokemonDetailsInBackground()
+    }
+
+    private fun fetchAllPokemonDetailsInBackground() {
+        viewModelScope.launch {
+            _allPokemonNames.value.forEach { name ->
+                if (_allPokemonDetails.value.none { it.name == name }) {
+                    fetchPokemonDetails(name)?.let { detail ->
+                        _allPokemonDetails.value += detail
+                    }
+                }
+            }
+        }
+    }
+
+    fun updateSearchTerm(term: String) {
+        viewModelScope.launch {
+            _searchTerm.emit(term)
+        }
+    }
+
+    private suspend fun fetchInitialPokemonBatch() {
+        _isLoading.value = true
+        try {
+            val firstBatch = _allPokemonNames.value.take(limit).mapNotNull { fetchPokemonDetails(it) }
+            _pokemonList.value = firstBatch
+            _allPokemonDetails.value = firstBatch
+            offset = firstBatch.size
+        } finally {
+            _isLoading.value = false
+        }
     }
 
     fun fetchPokemonList() {
-        // Avoid fetching if already loading or if there are no more Pokémon to load
         if (_isLoading.value || _isLoadingMore.value || !hasMorePokemon.value) return
 
-        val isLoadMore = pokemonList.value.isNotEmpty()
+        val isLoadMore = _pokemonList.value.isNotEmpty()
 
-        // Set the appropriate loading state
         if (isLoadMore) {
             _isLoadingMore.value = true
         } else {
@@ -61,33 +127,17 @@ class HomeViewModel(
 
         _hasError.value = null
 
-        // Launch in a coroutine
         viewModelScope.launch {
             try {
-                when (val result = pokemonUseCase.getPokemonList(limit, offset)) {
-                    is ApiSuccess -> {
-                        val newPokemon = result.data?.mapNotNull { name ->
-                            fetchPokemonDetails(name)
-                        }.orEmpty()
-                        // Update the Pokémon list
-                        _pokemonList.value += newPokemon
+                val nextBatch = _allPokemonNames.value.drop(offset).take(limit).mapNotNull { fetchPokemonDetails(it) }
+                _pokemonList.value += nextBatch
+                _allPokemonDetails.value += nextBatch
+                offset += nextBatch.size
 
-                        // Update offset for pagination
-                        offset += limit
-
-                        // Check if there are no more Pokémon to load
-                        if (newPokemon.isEmpty() || newPokemon.size < limit) {
-                            hasMorePokemon.value = false
-                        }
-                    }
-                    is ApiError -> TODO()
-                    is ApiNoInternetError -> TODO()
-                    is ApiException -> TODO()
-
-                    is ApiLoading -> TODO()
+                if (nextBatch.size < limit) {
+                    hasMorePokemon.value = false
                 }
             } finally {
-                // Ensure loading states are reset
                 if (isLoadMore) {
                     _isLoadingMore.value = false
                 } else {
@@ -103,16 +153,12 @@ class HomeViewModel(
             is ApiSuccess -> {
                 val data = result.data
                 if (data != null) {
-                    val types = data.types.map { mapToPokemonType(it.type.name) }
-                    val spriteUrl = data.sprites.frontDefault ?: ""
                     PokemonCardUI(
                         name = data.name,
-                        types = types,
-                        spriteUrl = spriteUrl
+                        types = data.types.map { mapToPokemonType(it.type.name) },
+                        spriteUrl = data.sprites.frontDefault ?: ""
                     )
-                } else {
-                    null
-                }
+                } else null
             }
             else -> null
         }
