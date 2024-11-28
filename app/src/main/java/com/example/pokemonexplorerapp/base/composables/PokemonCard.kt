@@ -39,15 +39,18 @@ fun PokemonCard(
     types: List<PokemonType>,
     imageUrl: String,
     isFavorite: Boolean,
-    onLikeClicked: (Boolean) -> Unit
+    onLikeClicked: (Boolean) -> Unit,
+    onClick: () -> Unit
 ) {
-    val mainType = types.firstOrNull() ?: PokemonType.All
+    val mainType = types.first()
+    require(types.isNotEmpty()) { "PokemonCard requires at least one type." }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .padding(8.dp),
+            .padding(8.dp)
+            .setNoRippleClickable { onClick() },
         shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(
             containerColor = mainType.color.copy(alpha = 0.3f),

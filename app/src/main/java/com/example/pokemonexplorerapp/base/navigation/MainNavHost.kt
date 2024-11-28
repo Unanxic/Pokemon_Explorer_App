@@ -10,13 +10,17 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.pokemonexplorerapp.base.composables.BottomBarItems
 import com.example.pokemonexplorerapp.base.screens.AppHomeRoot
+import com.example.pokemonexplorerapp.base.screens.PokemonDetailsScreen
 import com.example.pokemonexplorerapp.base.screens.SplashScreen
 import com.example.pokemonexplorerapp.base.theme.animations.slideInHorizontallyTransition
 import com.example.pokemonexplorerapp.base.theme.animations.slideInOnReEnterHorizontallyTransition
 import com.example.pokemonexplorerapp.base.theme.animations.slideOutHorizontallyTransition
 import com.example.pokemonexplorerapp.base.theme.animations.slideOutOnReEnterHorizontallyTransition
+import com.example.pokemonexplorerapp.utils.PokemonType
+import com.example.pokemonexplorerapp.utils.addRouteParams
 import com.example.pokemonexplorerapp.utils.decideWhereToNavigateNext
 import kotlinx.coroutines.runBlocking
 
@@ -46,6 +50,33 @@ fun MainNavHost(
                 onActiveBottomBarItemChange = { newTabSelected: BottomBarItems ->
                     activeBottomBarItem = newTabSelected
                 },
+                navController = navController
+            )
+        }
+        composable(
+            route = Screen.PokemonDetails.route.addRouteParams(
+                "name" to "name",
+                "types" to "types",
+                "imageUrl" to "imageUrl"
+            ),
+            arguments = listOf(
+                navArgument("name") { defaultValue = "" },
+                navArgument("types") { defaultValue = "" }, // Default to an empty string
+                navArgument("imageUrl") { defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("name").orEmpty()
+            val types = backStackEntry.arguments?.getString("types")
+                ?.split(",") // Split the comma-separated string
+                ?.mapNotNull { typeName ->
+                    PokemonType.entries.find { it.name == typeName } // Safely map to `PokemonType`
+                } ?: emptyList() // Fallback to an empty list if parsing fails
+            val imageUrl = backStackEntry.arguments?.getString("imageUrl").orEmpty()
+
+            PokemonDetailsScreen(
+                pokemonName = name,
+                pokemonType = types,
+                imageUrl = imageUrl,
                 navController = navController
             )
         }

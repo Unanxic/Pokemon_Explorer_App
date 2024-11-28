@@ -90,7 +90,8 @@ fun FavoritesScreen(
                         isFavorite = true,
                         onLikeClicked = { isLiked ->
                             if (!isLiked) viewModel.toggleFavorite(pokemonName)
-                        }
+                        },
+                        onClick = {} //todo later
                     )
                 }
             }

@@ -32,16 +32,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokemonexplorerapp.R
 import com.example.pokemonexplorerapp.base.theme.animations.getDefaultTweenAnimationSpec
-import com.example.pokemonexplorerapp.utils.PokemonType
+import com.example.pokemonexplorerapp.utils.PokemonFilterType
 import com.example.pokemonexplorerapp.utils.setNoRippleClickable
 
 
 @Composable
 fun PokemonTypeDropdown(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onTypeSelected: (PokemonFilterType) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedType by remember { mutableStateOf(PokemonType.All) }
+    var selectedFilterType by remember { mutableStateOf(PokemonFilterType.All) }
+
 
     val arrowRotation by animateFloatAsState(
         targetValue = if (expanded) 0f else 180f,
@@ -50,16 +52,16 @@ fun PokemonTypeDropdown(
     )
 
     val blackArrowAndTextTypes = setOf(
-        PokemonType.All,
-        PokemonType.Fire,
-        PokemonType.Water,
-        PokemonType.Grass,
-        PokemonType.Electric,
-        PokemonType.Psychic,
-        PokemonType.Steel,
-        PokemonType.Fairy
+        PokemonFilterType.All,
+        PokemonFilterType.Fire,
+        PokemonFilterType.Water,
+        PokemonFilterType.Grass,
+        PokemonFilterType.Electric,
+        PokemonFilterType.Psychic,
+        PokemonFilterType.Steel,
+        PokemonFilterType.Fairy
     )
-    val isBlackTextAndArrow = selectedType in blackArrowAndTextTypes
+    val isBlackTextAndArrow = selectedFilterType in blackArrowAndTextTypes
     val arrowColorFilter = if (isBlackTextAndArrow) null else ColorFilter.tint(Color.White)
     val textColor = if (isBlackTextAndArrow) Color.Black else Color.White
 
@@ -70,7 +72,7 @@ fun PokemonTypeDropdown(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = selectedType.color,
+                    color = selectedFilterType.color,
                     shape = RoundedCornerShape(50.dp)
                 )
                 .setNoRippleClickable { expanded = !expanded }
@@ -83,7 +85,7 @@ fun PokemonTypeDropdown(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = selectedType.displayName,
+                    text = selectedFilterType.displayName,
                     fontSize = 16.sp,
                     color = textColor
                 )
@@ -100,11 +102,12 @@ fun PokemonTypeDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            PokemonType.entries.forEach { type ->
+            PokemonFilterType.entries.forEach { filterType  ->
                 DropdownMenuItem(
                     onClick = {
-                        selectedType = type
+                        selectedFilterType = filterType
                         expanded = false
+                        onTypeSelected(filterType)
                     },
                     text = {
                         Row(
@@ -114,10 +117,10 @@ fun PokemonTypeDropdown(
                             Box(
                                 modifier = Modifier
                                     .size(16.dp)
-                                    .background(type.color, CircleShape)
+                                    .background(filterType.color, CircleShape)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = type.displayName, fontSize = 14.sp)
+                            Text(text = filterType.displayName, fontSize = 14.sp)
                         }
                     }
                 )

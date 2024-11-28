@@ -5,3 +5,23 @@ fun String.capitalizeFirstLetter(): String {
         if (it.isLowerCase()) it.titlecase() else it.toString()
     }
 }
+
+fun String.addRouteParams(vararg nameToValue: Pair<String, String>, concatenationCharacter: String = "?"): String {
+    val stringBuilder = StringBuilder(this)
+    with(stringBuilder) {
+        nameToValue.forEach { nameToValuePair ->
+            append("$concatenationCharacter${nameToValuePair.first}={${nameToValuePair.second}}")
+        }
+    }
+    return stringBuilder.toString()
+}
+
+fun String.addNavigationParams(vararg nameToValue: Pair<String, String>, concatenationCharacter: String = "?"): String {
+    val stringBuilder = StringBuilder(this)
+    with(stringBuilder) {
+        nameToValue.forEach { nameToValuePair ->
+            append("$concatenationCharacter${nameToValuePair.first}=${nameToValuePair.second}")
+        }
+    }
+    return stringBuilder.toString()
+}

@@ -35,9 +35,11 @@ import com.example.pokemonexplorerapp.base.composables.GenericOutlinedTextField
 import com.example.pokemonexplorerapp.base.composables.PokemonCard
 import com.example.pokemonexplorerapp.base.composables.PokemonTypeDropdown
 import com.example.pokemonexplorerapp.base.composables.TopBar
+import com.example.pokemonexplorerapp.base.navigation.Screen
 import com.example.pokemonexplorerapp.base.screens.viewmodel.HomeViewModel
 import com.example.pokemonexplorerapp.base.theme.CarminePink
 import com.example.pokemonexplorerapp.base.theme.MidnightBlue
+import com.example.pokemonexplorerapp.utils.addNavigationParams
 import org.koin.compose.koinInject
 
 @Composable
@@ -94,51 +96,49 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 PokemonTypeDropdown(
-                    modifier = Modifier.width(200.dp)
+                    modifier = Modifier.width(200.dp),
+                    onTypeSelected = viewModel::updateFilterTypeWithLoading
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
-
-                // LazyColumn for Pokémon Cards
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = paddingValues.calculateBottomPadding()),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(filteredPokemonList) { pokemon ->
-                        PokemonCard(
-                            name = pokemon.name,
-                            types = pokemon.types,
-                            imageUrl = pokemon.spriteUrl,
-                            isFavorite = favorites.contains(pokemon.name),
-                            onLikeClicked = { isLiked -> viewModel.toggleFavorite(pokemon.name) }
-                        )
+                if (isLoading && pokemonList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = CarminePink)
                     }
-                    // Load More Button or Loader
-                    item {
-                        if (searchTerm.isEmpty() && pokemonList.isNotEmpty()) {
-                                LoadMoreButtonOrLoader(
-                                    isLoading = isLoadingMore,
-                                    onLoadMore = { viewModel.fetchPokemonList() }
-                                )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = paddingValues.calculateBottomPadding()),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredPokemonList) { pokemon ->
+                            PokemonCard(
+                                name = pokemon.name,
+                                types = pokemon.types,
+                                imageUrl = pokemon.spriteUrl,
+                                isFavorite = favorites.contains(pokemon.name),
+                                onLikeClicked = { isLiked -> viewModel.toggleFavorite(pokemon.name) },
+                                onClick = {
+                                    navController.navigate(
+                                        Screen.PokemonDetails.route.addNavigationParams(
+                                            "name" to pokemon.name,
+                                            "types" to pokemon.types.joinToString(",") { it.name },
+                                            "imageUrl" to pokemon.spriteUrl
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(100.dp))
                         }
                     }
-                    // Bottom Spacer
-                    item {
-                        Spacer(modifier = Modifier.height(90.dp))
-                    }
-                }
-            }
-            // CircularProgressIndicator in the middle of the screen
-            if (isLoading && pokemonList.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = CarminePink)
                 }
             }
         }
@@ -164,7 +164,7 @@ fun LoadMoreButtonOrLoader(
             )
         } else {
             Button(
-                onClick = { onLoadMore() },
+                onClick = onLoadMore,
                 modifier = Modifier
                     .fillMaxWidth(),
                 elevation = ButtonDefaults.elevatedButtonElevation(
