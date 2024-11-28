@@ -1,7 +1,10 @@
 package com.example.data.di
 
 import com.example.data.repositories.PokemonRepositoryImpl
+import com.example.data.repositories.favorites.FavoritePokemonRepositoryImpl
+import com.example.data.repositories.favorites.datastore.FavoritePokemonDataStore
 import com.example.data.repositories.network.PokeApiService
+import com.example.domain.repositories.FavoritePokemonRepository
 import com.example.domain.repositories.PokemonRepository
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -13,6 +16,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 val koinDependenciesData = module {
+
     // Moshi configuration
     single {
         Moshi.Builder()
@@ -27,6 +31,8 @@ val koinDependenciesData = module {
 
     // Repository implementation
     singleOf(::PokemonRepositoryImpl) bind PokemonRepository::class
+    singleOf(::FavoritePokemonDataStore)
+    singleOf(::FavoritePokemonRepositoryImpl) bind FavoritePokemonRepository::class
 
     // Retrofit configuration
     single {

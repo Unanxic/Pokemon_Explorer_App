@@ -7,6 +7,7 @@ import com.example.domain.models.network.ApiError
 import com.example.domain.models.network.ApiException
 import com.example.domain.models.network.ApiNoInternetError
 import com.example.domain.models.network.ApiSuccess
+import com.example.domain.usecases.ManageFavoritesUseCase
 import com.example.domain.usecases.PokemonUseCase
 import com.example.pokemonexplorerapp.utils.PokemonType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,11 +24,14 @@ data class PokemonCardUI(
 )
 
 class HomeViewModel(
-    private val pokemonUseCase: PokemonUseCase
+    private val pokemonUseCase: PokemonUseCase,
+    private val manageFavoritesUseCase: ManageFavoritesUseCase
 ) : ViewModel() {
 
-    private val _allPokemonNames = MutableStateFlow<List<String>>(emptyList()) // Pokémon names for search
-    private val _allPokemonDetails = MutableStateFlow<List<PokemonCardUI>>(emptyList()) // Cached Pokémon details
+    private val _allPokemonNames =
+        MutableStateFlow<List<String>>(emptyList()) // Pokémon names for search
+    private val _allPokemonDetails =
+        MutableStateFlow<List<PokemonCardUI>>(emptyList()) // Cached Pokémon details
 
     private val _pokemonList = MutableStateFlow<List<PokemonCardUI>>(emptyList())
     val pokemonList: StateFlow<List<PokemonCardUI>> get() = _pokemonList
@@ -57,6 +61,12 @@ class HomeViewModel(
         }
     }
 
+    val favorites: StateFlow<Set<String>> = manageFavoritesUseCase.favorites.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        emptySet()
+    )
+
     val filteredPokemonList = combine(_allPokemonDetails, _searchTerm) { allDetails, search ->
         if (search.isNotEmpty()) {
             val searchLower = search.lowercase()
@@ -66,6 +76,13 @@ class HomeViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    fun toggleFavorite(name: String) {
+        viewModelScope.launch {
+            val isFavorite = favorites.value.contains(name)
+            manageFavoritesUseCase.toggleFavorite(name, isFavorite)
+        }
+    }
+
     private suspend fun fetchAllPokemonNames() {
         _isLoading.value = true
         try {
@@ -73,6 +90,7 @@ class HomeViewModel(
                 is ApiSuccess -> {
                     _allPokemonNames.value = result.data.orEmpty() // Cache Pokémon names
                 }
+
                 is ApiError -> _hasError.value = "Failed to fetch Pokémon names."
                 is ApiNoInternetError -> _hasError.value = "No internet connection."
                 is ApiException -> _hasError.value = "An error occurred."
@@ -105,7 +123,8 @@ class HomeViewModel(
     private suspend fun fetchInitialPokemonBatch() {
         _isLoading.value = true
         try {
-            val firstBatch = _allPokemonNames.value.take(limit).mapNotNull { fetchPokemonDetails(it) }
+            val firstBatch =
+                _allPokemonNames.value.take(limit).mapNotNull { fetchPokemonDetails(it) }
             _pokemonList.value = firstBatch
             _allPokemonDetails.value = firstBatch
             offset = firstBatch.size
@@ -129,7 +148,8 @@ class HomeViewModel(
 
         viewModelScope.launch {
             try {
-                val nextBatch = _allPokemonNames.value.drop(offset).take(limit).mapNotNull { fetchPokemonDetails(it) }
+                val nextBatch = _allPokemonNames.value.drop(offset).take(limit)
+                    .mapNotNull { fetchPokemonDetails(it) }
                 _pokemonList.value += nextBatch
                 _allPokemonDetails.value += nextBatch
                 offset += nextBatch.size
@@ -160,6 +180,7 @@ class HomeViewModel(
                     )
                 } else null
             }
+
             else -> null
         }
     }

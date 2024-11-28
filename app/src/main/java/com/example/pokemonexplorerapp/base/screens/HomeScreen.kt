@@ -57,6 +57,8 @@ fun HomeScreen(
     val filteredPokemonList by viewModel.filteredPokemonList.collectAsState()
     val searchTerm by viewModel.searchTerm.collectAsState()
 
+    val favorites by viewModel.favorites.collectAsState() // Observe favorites
+
 
     AppScaffold(
         topBar = {
@@ -110,9 +112,8 @@ fun HomeScreen(
                             name = pokemon.name,
                             types = pokemon.types,
                             imageUrl = pokemon.spriteUrl,
-                            onLikeClicked = { isLiked ->
-                                // Handle like action if needed
-                            }
+                            isFavorite = favorites.contains(pokemon.name),
+                            onLikeClicked = { isLiked -> viewModel.toggleFavorite(pokemon.name) }
                         )
                     }
                     // Load More Button or Loader
