@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,7 @@ fun PokemonCard(
     onClick: () -> Unit
 ) {
     val mainType = types.first()
-    require(types.isNotEmpty()) { "PokemonCard requires at least one type." }
+    require(types.isNotEmpty()) { stringResource(R.string.pokemoncard_requires_at_least_one_type) }
 
     Card(
         modifier = Modifier
@@ -152,7 +153,9 @@ private fun PokemonImageCard(
                 val favoriteIcon = if (isFavorite) R.drawable.favorite_filled else R.drawable.favorite
                 Image(
                     painter = painterResource(id = favoriteIcon),
-                    contentDescription = if (isFavorite) "Unfavorite" else "Favorite",
+                    contentDescription = if (isFavorite) stringResource(R.string.unfavorite) else stringResource(
+                        R.string.favorite
+                    ),
                     modifier = Modifier
                         .size(25.dp)
                         .setNoRippleClickable { onFavoriteClick(!isFavorite) }

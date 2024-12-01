@@ -84,7 +84,7 @@ HomeViewModel(
 
     fun toggleFavorite(pokemonName: String, isFavorite: Boolean) {
         if (isFavorite) {
-            // Show confirmation dialog
+            // Show RemoveFavorite confirmation dialog
             _dialogData.value = DialogData.RemoveFavorite(
                 annotatedString = buildAnnotatedString {
                     append("Do you want to remove ")
@@ -102,8 +102,20 @@ HomeViewModel(
                 }
             )
         } else {
-            // Directly add to favorites
-            addFavorite(pokemonName)
+            // Show AddFavorite confirmation dialog
+            _dialogData.value = DialogData.AddFavorite(
+                annotatedString = buildAnnotatedString {
+                    append("You added ")
+                    withStyle(SpanStyle(color = CarminePink)) {
+                        append(pokemonName.replaceFirstChar { it.uppercase() })
+                    }
+                    append(" to your Favorites list!")
+                },
+                primaryCallback = {
+                    addFavorite(pokemonName)
+                    dismissDialog()
+                }
+            )
         }
     }
 

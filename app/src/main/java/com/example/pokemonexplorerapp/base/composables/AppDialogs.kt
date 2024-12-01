@@ -187,4 +187,14 @@ sealed class DialogData(
         secondaryCallback = secondaryCallback,
         isSkippAble = false
     )
+
+    class AddFavorite(
+        annotatedString: AnnotatedString,
+        primaryCallback: () -> Unit
+    ) : DialogData(
+        iconRes = R.drawable.heart,
+        annotatedString = annotatedString,
+        primaryButtonRes = R.string.okay,
+        primaryCallback = primaryCallback
+    )
 }

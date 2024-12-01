@@ -4,4 +4,10 @@
     <string name="home">Home</string>
     <string name="remove">Remove</string>
     <string name="cancel">Cancel</string>
+    <string name="pokemoncard_requires_at_least_one_type">PokemonCard requires at least one type.</string>
+    <string name="unfavorite">Unfavorite</string>
+    <string name="favorite">Favorite</string>
+    <string name="no_favorites_found">No Favorites Found</string>
+    <string name="no_pokemon_found">No Pokemon Found</string>
+    <string name="okay">OK</string>
 </resources>

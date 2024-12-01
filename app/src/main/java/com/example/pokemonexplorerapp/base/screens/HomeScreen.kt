@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,7 +56,7 @@ fun HomeScreen(
     AppScaffold(
         topBar = {
             TopBar(
-                title = "Home",
+                title = stringResource(R.string.home),
             )
         }
     ) { paddingValues ->
@@ -178,12 +179,12 @@ private fun EmptyListUI(paddingValues: PaddingValues) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(id = R.drawable.fish),
-                contentDescription = "No Favorites Found",
+                contentDescription = stringResource(R.string.no_pokemon_found),
                 modifier = Modifier.size(120.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "No Pokemon Found",
+                text = stringResource(R.string.no_pokemon_found),
                 color = Color.Gray,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
