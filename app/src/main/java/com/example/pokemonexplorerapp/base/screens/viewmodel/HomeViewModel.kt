@@ -39,13 +39,11 @@ HomeViewModel(
         MutableStateFlow<List<PokemonCardUI>>(emptyList())
 
     private val _pokemonList = MutableStateFlow<List<PokemonCardUI>>(emptyList())
-    val pokemonList: StateFlow<List<PokemonCardUI>> = _pokemonList
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _hasError = MutableStateFlow<String?>(null)
-    val hasError: StateFlow<String?> = _hasError
 
     private val _searchTerm = MutableStateFlow("")
     val searchTerm: StateFlow<String> = _searchTerm
