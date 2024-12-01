@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,15 +31,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.pokemonexplorerapp.R
 import com.example.pokemonexplorerapp.base.composables.AppScaffold
 import com.example.pokemonexplorerapp.base.composables.PokemonTypeBadge
 import com.example.pokemonexplorerapp.base.composables.TopBar
+import com.example.pokemonexplorerapp.base.screens.viewmodel.PokemonDetails
 import com.example.pokemonexplorerapp.base.screens.viewmodel.PokemonDetailsViewModel
 import com.example.pokemonexplorerapp.base.theme.CarminePink
 import com.example.pokemonexplorerapp.base.theme.EarthYellow
@@ -58,7 +62,6 @@ fun PokemonDetailsScreen(
     val pokemonDetails by viewModel.pokemonDetails.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-
     LaunchedEffect(pokemonName) {
         viewModel.fetchPokemonDetails(pokemonName)
     }
@@ -68,7 +71,7 @@ fun PokemonDetailsScreen(
     AppScaffold(
         topBar = {
             TopBar(
-                title = "Pokemon Details",
+                title = stringResource(R.string.pokemon_details),
                 showBackButton = true,
                 onBackClick = {
                     navController.popBackStack()
@@ -84,79 +87,113 @@ fun PokemonDetailsScreen(
                     CircularProgressIndicator(color = CarminePink)
                 }
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            top = paddingValues.calculateTopPadding(),
-                        )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(150.dp)
-                                .background(
-                                    primaryType!!.color.copy(alpha = 0.3f),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            AsyncImage(
-                                model = imageUrl,
-                                contentDescription = "Pokemon Image",
-                                modifier = Modifier
-                                    .size(120.dp),
-                                contentScale = ContentScale.Fit
-                            )
-                        }
-                    }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = pokemonName.replaceFirstChar { it.uppercase() },
-                            color = Color.Black,
-                            fontSize = 35.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            pokemonType.forEach { type ->
-                                PokemonTypeBadge(
-                                    type = type,
-                                    fontSize = 22.sp
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(40.dp))
-                        pokemonDetails?.let {
-                            PokemonBaseStats(
-                                hp = it.hp,
-                                attack = it.attack,
-                                defense = it.defense
-                            )
-                        }
-                    }
-                }
+                PokemonDetailsContent(
+                    pokemonName = pokemonName,
+                    pokemonType = pokemonType,
+                    imageUrl = imageUrl,
+                    primaryType = primaryType,
+                    pokemonDetails = pokemonDetails,
+                    paddingValues = paddingValues
+                )
             }
         }
     }
 }
 
 @Composable
-fun PokemonStat(
+private fun PokemonDetailsContent(
+    pokemonName: String,
+    pokemonType: List<PokemonFilterType>,
+    imageUrl: String,
+    primaryType: PokemonFilterType?,
+    pokemonDetails: PokemonDetails?,
+    paddingValues: PaddingValues
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = paddingValues.calculateTopPadding())
+    ) {
+        PokemonImageHeader(imageUrl = imageUrl, primaryType = primaryType)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+            PokemonNameAndType(pokemonName = pokemonName, pokemonType = pokemonType)
+            Spacer(modifier = Modifier.height(40.dp))
+            pokemonDetails?.let {
+                PokemonStatsSection(
+                    hp = it.hp,
+                    attack = it.attack,
+                    defense = it.defense
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PokemonStatsSection(hp: Int, attack: Int, defense: Int) {
+    PokemonBaseStats(
+        hp = hp,
+        attack = attack,
+        defense = defense
+    )
+}
+
+@Composable
+private fun PokemonNameAndType(pokemonName: String, pokemonType: List<PokemonFilterType>) {
+    Text(
+        text = pokemonName.replaceFirstChar { it.uppercase() },
+        color = Color.Black,
+        fontSize = 35.sp,
+        fontWeight = FontWeight.SemiBold
+    )
+    Spacer(modifier = Modifier.height(20.dp))
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        pokemonType.forEach { type ->
+            PokemonTypeBadge(type = type, fontSize = 22.sp)
+        }
+    }
+}
+
+@Composable
+private fun PokemonImageHeader(imageUrl: String, primaryType: PokemonFilterType?) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(150.dp)
+                .background(
+                    primaryType?.color?.copy(alpha = 0.3f) ?: Color.Gray,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Pokemon Image",
+                modifier = Modifier.size(120.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+    }
+}
+
+
+
+@Composable
+private fun PokemonStat(
     statName: String,
     statValue: Int,
     statMaxValue: Int,
@@ -209,7 +246,7 @@ fun PokemonStat(
 }
 
 @Composable
-fun PokemonBaseStats(
+private fun PokemonBaseStats(
     hp: Int,
     attack: Int,
     defense: Int,
@@ -231,12 +268,12 @@ fun PokemonBaseStats(
             .padding(horizontal = 16.dp)
     ) {
         Text(
-            text = "Base Stats:",
+            text = stringResource(R.string.base_stats),
             fontSize = 22.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
         PokemonStat(
-            statName = "HP",
+            statName = stringResource(R.string.hp),
             statValue = hp,
             statMaxValue = maxStatValue,
             statColor = EarthYellow,
@@ -244,7 +281,7 @@ fun PokemonBaseStats(
         )
         Spacer(modifier = Modifier.height(35.dp))
         PokemonStat(
-            statName = "Attack",
+            statName = stringResource(R.string.attack),
             statValue = attack,
             statMaxValue = maxStatValue,
             statColor = LightRed,
@@ -252,7 +289,7 @@ fun PokemonBaseStats(
         )
         Spacer(modifier = Modifier.height(35.dp))
         PokemonStat(
-            statName = "Defense",
+            statName = stringResource(R.string.defense),
             statValue = defense,
             statMaxValue = maxStatValue,
             statColor = Verdigris,

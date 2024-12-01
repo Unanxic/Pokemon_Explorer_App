@@ -10,4 +10,9 @@
     <string name="no_favorites_found">No Favorites Found</string>
     <string name="no_pokemon_found">No Pokemon Found</string>
     <string name="okay">OK</string>
+    <string name="base_stats">Base Stats:</string>
+    <string name="hp">HP</string>
+    <string name="attack">Attack</string>
+    <string name="defense">Defense</string>
+    <string name="pokemon_details">Pokemon Details</string>
 </resources>

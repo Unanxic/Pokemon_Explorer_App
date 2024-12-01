@@ -33,6 +33,7 @@ import com.example.pokemonexplorerapp.base.composables.PokemonCard
 import com.example.pokemonexplorerapp.base.composables.TopBar
 import com.example.pokemonexplorerapp.base.navigation.Screen
 import com.example.pokemonexplorerapp.base.screens.viewmodel.FavoritesViewModel
+import com.example.pokemonexplorerapp.base.screens.viewmodel.Pokemon
 import com.example.pokemonexplorerapp.base.theme.CarminePink
 import com.example.pokemonexplorerapp.utils.addNavigationParams
 import org.koin.compose.koinInject
@@ -62,41 +63,59 @@ fun FavoritesScreen(
             if (favoritePokemon.isEmpty()) {
                 EmptyFavoritesUI(paddingValues)
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            top = paddingValues.calculateTopPadding(),
-                            bottom = paddingValues.calculateBottomPadding()
-                        )
-                        .padding(horizontal = 20.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(favoritePokemon) { pokemon ->
-                        PokemonCard(
-                            name = pokemon.name,
-                            types = pokemon.types,
-                            imageUrl = pokemon.spriteUrl,
-                            isFavorite = true,
-                            onLikeClicked = { name, isFavorite ->
-                                viewModel.toggleFavorite(name, isFavorite)
-                            },
-                            onClick = {
-                                navController.navigate(
-                                    Screen.PokemonDetails.route.addNavigationParams(
-                                        "name" to pokemon.name,
-                                        "types" to pokemon.types.joinToString(",") { it.name },
-                                        "imageUrl" to pokemon.spriteUrl
-                                    )
-                                )
-                            }
-                        )
+                FavoritesList(
+                    favoritePokemon = favoritePokemon,
+                    paddingValues = paddingValues,
+                    navController = navController,
+                    onLikeClicked = { name, isFavorite ->
+                        viewModel.toggleFavorite(name, isFavorite)
                     }
-                }
+                )
             }
         }
         dialogData?.let { AppDialog(it) }
+    }
+}
+
+@Composable
+private fun FavoritesList(
+    favoritePokemon: List<Pokemon>,
+    paddingValues: PaddingValues,
+    navController: NavHostController,
+    onLikeClicked: (String, Boolean) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                top = paddingValues.calculateTopPadding(),
+                bottom = paddingValues.calculateBottomPadding()
+            )
+            .padding(horizontal = 20.dp),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(favoritePokemon) { pokemon ->
+            PokemonCard(
+                name = pokemon.name,
+                types = pokemon.types,
+                imageUrl = pokemon.spriteUrl,
+                isFavorite = true,
+                onLikeClicked = onLikeClicked,
+                onClick = {
+                    navController.navigate(
+                        Screen.PokemonDetails.route.addNavigationParams(
+                            "name" to pokemon.name,
+                            "types" to pokemon.types.joinToString(",") { it.name },
+                            "imageUrl" to pokemon.spriteUrl
+                        )
+                    )
+                }
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(100.dp))
+        }
     }
 }
 
