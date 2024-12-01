@@ -1,6 +1,5 @@
 package com.example.pokemonexplorerapp.base.screens.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -45,9 +44,6 @@ HomeViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _isLoadingMore = MutableStateFlow(false)
-    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
-
     private val _hasError = MutableStateFlow<String?>(null)
     val hasError: StateFlow<String?> = _hasError
 
@@ -58,8 +54,6 @@ HomeViewModel(
 
     private val _dialogData = MutableStateFlow<DialogData?>(null)
     val dialogData: StateFlow<DialogData?> = _dialogData
-
-    private var hasMorePokemon = mutableStateOf(true)
 
     private var offset = 0
     private val limit = 10

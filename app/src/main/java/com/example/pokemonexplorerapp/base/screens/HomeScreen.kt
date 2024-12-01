@@ -48,18 +48,11 @@ fun HomeScreen(
     paddingValues: PaddingValues,
     viewModel: HomeViewModel = koinInject()
 ) {
-
-    val pokemonList by viewModel.pokemonList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-
     val filteredPokemonList by viewModel.filteredPokemonList.collectAsState()
     val searchTerm by viewModel.searchTerm.collectAsState()
-
-    val favorites by viewModel.favorites.collectAsState() // Observe favorites
-
+    val favorites by viewModel.favorites.collectAsState()
     val dialogData by viewModel.dialogData.collectAsState()
-
-
 
     AppScaffold(
         topBar = {
