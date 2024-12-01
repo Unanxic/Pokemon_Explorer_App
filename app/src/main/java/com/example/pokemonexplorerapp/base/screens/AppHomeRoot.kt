@@ -28,11 +28,9 @@ fun AppHomeRoot(
         ) { navBarItemState ->
             when (navBarItemState) {
                 BottomBarItems.HOME -> HomeScreen(
-                    paddingValues = paddingValues,
                     navController = navController
                 )
                 BottomBarItems.FAVORITES -> FavoritesScreen(
-                    paddingValues = paddingValues,
                     navController = navController
                 )
             }

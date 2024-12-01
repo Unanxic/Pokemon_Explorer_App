@@ -43,9 +43,7 @@ import org.koin.compose.koinInject
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier,
     navController: NavHostController,
-    paddingValues: PaddingValues,
     viewModel: HomeViewModel = koinInject()
 ) {
     val isLoading by viewModel.isLoading.collectAsState()

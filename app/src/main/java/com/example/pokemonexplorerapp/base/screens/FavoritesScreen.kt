@@ -38,7 +38,6 @@ import org.koin.compose.koinInject
 
 @Composable
 fun FavoritesScreen(
-    paddingValues: PaddingValues,
     viewModel: FavoritesViewModel = koinInject(),
     navController: NavHostController
 ) {

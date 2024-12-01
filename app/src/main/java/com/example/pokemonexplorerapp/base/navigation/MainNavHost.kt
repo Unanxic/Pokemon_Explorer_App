@@ -1,6 +1,5 @@
 package com.example.pokemonexplorerapp.base.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,8 +28,6 @@ fun MainNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
 ) {
-//    var currentScreen by remember { mutableStateOf<Screen>(Screen.HomeScreen) }
-    val paddingValues = PaddingValues()
     var activeBottomBarItem by remember { mutableStateOf(BottomBarItems.HOME) }
     NavHost(
         modifier = modifier,
