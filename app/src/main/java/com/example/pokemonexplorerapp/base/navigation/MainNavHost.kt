@@ -19,7 +19,7 @@ import com.example.pokemonexplorerapp.base.theme.animations.slideInHorizontallyT
 import com.example.pokemonexplorerapp.base.theme.animations.slideInOnReEnterHorizontallyTransition
 import com.example.pokemonexplorerapp.base.theme.animations.slideOutHorizontallyTransition
 import com.example.pokemonexplorerapp.base.theme.animations.slideOutOnReEnterHorizontallyTransition
-import com.example.pokemonexplorerapp.utils.PokemonType
+import com.example.pokemonexplorerapp.utils.PokemonFilterType
 import com.example.pokemonexplorerapp.utils.addRouteParams
 import com.example.pokemonexplorerapp.utils.decideWhereToNavigateNext
 import kotlinx.coroutines.runBlocking
@@ -69,7 +69,7 @@ fun MainNavHost(
             val types = backStackEntry.arguments?.getString("types")
                 ?.split(",") // Split the comma-separated string
                 ?.mapNotNull { typeName ->
-                    PokemonType.entries.find { it.name == typeName } // Safely map to `PokemonType`
+                    PokemonFilterType.entries.find { it.name == typeName } // Safely map to `PokemonType`
                 } ?: emptyList() // Fallback to an empty list if parsing fails
             val imageUrl = backStackEntry.arguments?.getString("imageUrl").orEmpty()
 

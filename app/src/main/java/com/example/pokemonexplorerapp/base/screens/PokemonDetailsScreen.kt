@@ -16,10 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,20 +37,34 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.pokemonexplorerapp.base.composables.AppScaffold
+import com.example.pokemonexplorerapp.base.composables.PokemonTypeBadge
 import com.example.pokemonexplorerapp.base.composables.TopBar
+import com.example.pokemonexplorerapp.base.screens.viewmodel.PokemonDetailsViewModel
+import com.example.pokemonexplorerapp.base.theme.CarminePink
 import com.example.pokemonexplorerapp.base.theme.EarthYellow
 import com.example.pokemonexplorerapp.base.theme.LightRed
 import com.example.pokemonexplorerapp.base.theme.Verdigris
-import com.example.pokemonexplorerapp.utils.PokemonType
+import com.example.pokemonexplorerapp.utils.PokemonFilterType
+import org.koin.compose.koinInject
 
 @Composable
 fun PokemonDetailsScreen(
     pokemonName: String,
-    pokemonType: List<PokemonType>,
+    pokemonType: List<PokemonFilterType>,
     imageUrl: String,
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: PokemonDetailsViewModel = koinInject()
 ) {
-    val primaryType = pokemonType.firstOrNull() ?: PokemonType.Fire
+    val pokemonDetails by viewModel.pokemonDetails.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+
+    LaunchedEffect(pokemonName) {
+        viewModel.fetchPokemonDetails(pokemonName)
+    }
+
+    val primaryType = pokemonType.firstOrNull()
+
     AppScaffold(
         topBar = {
             TopBar(
@@ -57,72 +72,83 @@ fun PokemonDetailsScreen(
                 showBackButton = true,
                 onBackClick = {
                     navController.popBackStack()
-                },
-                showFavoriteIcon = true,
+                }
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        top = paddingValues.calculateTopPadding(),
-                    )
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Circular Background
-                    Box(
-                        modifier = Modifier
-                            .size(150.dp) // Adjust size as needed
-                            .background(primaryType.color.copy(alpha = 0.3f), shape = CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Pokémon Image
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = "Pokemon Image",
-                            modifier = Modifier
-                                .size(120.dp), // Ensure the image is smaller than the circle
-                            contentScale = ContentScale.Fit
-                        )
-                    }
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = CarminePink)
                 }
+            } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(
+                            top = paddingValues.calculateTopPadding(),
+                        )
                 ) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = pokemonName,
-                        color = Color.Black,
-                        fontSize = 35.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        pokemonType.forEach { type ->
-                            PokemonTypeBadge(type = type)
+                        Box(
+                            modifier = Modifier
+                                .size(150.dp)
+                                .background(
+                                    primaryType!!.color.copy(alpha = 0.3f),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = imageUrl,
+                                contentDescription = "Pokemon Image",
+                                modifier = Modifier
+                                    .size(120.dp),
+                                contentScale = ContentScale.Fit
+                            )
                         }
                     }
-                    Spacer(modifier = Modifier.height(40.dp))
-                    PokemonBaseStats(
-                        hp = 45,
-                        attack = 49,
-                        defense = 49
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = pokemonName.replaceFirstChar { it.uppercase() },
+                            color = Color.Black,
+                            fontSize = 35.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            pokemonType.forEach { type ->
+                                PokemonTypeBadge(
+                                    type = type,
+                                    fontSize = 22.sp
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
+                        pokemonDetails?.let {
+                            PokemonBaseStats(
+                                hp = it.hp,
+                                attack = it.attack,
+                                defense = it.defense
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -189,7 +215,15 @@ fun PokemonBaseStats(
     defense: Int,
     animDelayPerItem: Int = 100
 ) {
-    val maxStatValue = 100
+    val maxStatValue = listOf(hp, attack, defense)
+        .maxOrNull()
+        ?.let { stat ->
+            when {
+                stat > 200 -> 300
+                stat > 100 -> 200
+                else -> 100
+            }
+        } ?: 100
 
     Column(
         modifier = Modifier
@@ -223,34 +257,6 @@ fun PokemonBaseStats(
             statMaxValue = maxStatValue,
             statColor = Verdigris,
             animDelay = animDelayPerItem * 2
-        )
-    }
-}
-
-
-@Composable
-private fun PokemonTypeBadge(type: PokemonType) {
-    val blackColor = setOf(
-        PokemonType.Fire,
-        PokemonType.Water,
-        PokemonType.Grass,
-        PokemonType.Electric,
-        PokemonType.Psychic,
-        PokemonType.Steel,
-        PokemonType.Fairy
-    )
-
-    val textColor = if (type in blackColor) Color.Black else Color.White
-    Box(
-        modifier = Modifier
-            .background(type.color, shape = RoundedCornerShape(15.dp))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = type.displayName,
-            color = textColor,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
         )
     }
 }

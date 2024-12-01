@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,10 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.pokemonexplorerapp.R
+import com.example.pokemonexplorerapp.base.composables.AppDialog
 import com.example.pokemonexplorerapp.base.composables.AppScaffold
 import com.example.pokemonexplorerapp.base.composables.PokemonCard
 import com.example.pokemonexplorerapp.base.composables.TopBar
+import com.example.pokemonexplorerapp.base.navigation.Screen
 import com.example.pokemonexplorerapp.base.screens.viewmodel.FavoritesViewModel
+import com.example.pokemonexplorerapp.base.theme.CarminePink
+import com.example.pokemonexplorerapp.utils.addNavigationParams
 import org.koin.compose.koinInject
 
 @Composable
@@ -38,63 +43,87 @@ fun FavoritesScreen(
     navController: NavHostController
 ) {
     val favoritePokemon by viewModel.favoritePokemon.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val dialogData by viewModel.dialogData.collectAsState()
 
     AppScaffold(
         topBar = {
             TopBar(title = "Favorites")
         }
     ) { paddingValues ->
-        if (favoritePokemon.isEmpty()) {
-            // Show placeholder if no favorites exist
+        if (isLoading) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        top = paddingValues.calculateTopPadding(),
-                        bottom = paddingValues.calculateBottomPadding()
-                    ),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.fish),
-                        contentDescription = "No Favorites Found",
-                        modifier = Modifier.size(120.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "No Favorites Found",
-                        color = Color.Gray,
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                CircularProgressIndicator(color = CarminePink)
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        top = paddingValues.calculateTopPadding(),
-                        bottom = paddingValues.calculateBottomPadding()
-                    )
-                    .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(favoritePokemon.toList()) { pokemonName ->
-                    PokemonCard(
-                        name = pokemonName,
-                        types = emptyList(), // Add proper types if needed
-                        imageUrl = "", // Add a proper sprite URL if available
-                        isFavorite = true,
-                        onLikeClicked = { isLiked ->
-                            if (!isLiked) viewModel.toggleFavorite(pokemonName)
-                        },
-                        onClick = {} //todo later
-                    )
+            if (favoritePokemon.isEmpty()) {
+                EmptyFavoritesUI(paddingValues)
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = paddingValues.calculateTopPadding(),
+                            bottom = paddingValues.calculateBottomPadding()
+                        )
+                        .padding(horizontal = 20.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(favoritePokemon) { pokemon ->
+                        PokemonCard(
+                            name = pokemon.name,
+                            types = pokemon.types,
+                            imageUrl = pokemon.spriteUrl,
+                            isFavorite = true,
+                            onLikeClicked = { name, isFavorite ->
+                                viewModel.toggleFavorite(name, isFavorite)
+                            },
+                            onClick = {
+                                navController.navigate(
+                                    Screen.PokemonDetails.route.addNavigationParams(
+                                        "name" to pokemon.name,
+                                        "types" to pokemon.types.joinToString(",") { it.name },
+                                        "imageUrl" to pokemon.spriteUrl
+                                    )
+                                )
+                            }
+                        )
+                    }
                 }
             }
+        }
+        dialogData?.let { AppDialog(it) }
+    }
+}
+
+@Composable
+private fun EmptyFavoritesUI(paddingValues: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                top = paddingValues.calculateTopPadding(),
+                bottom = paddingValues.calculateBottomPadding()
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.drawable.fish),
+                contentDescription = "No Favorites Found",
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "No Favorites Found",
+                color = Color.Gray,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

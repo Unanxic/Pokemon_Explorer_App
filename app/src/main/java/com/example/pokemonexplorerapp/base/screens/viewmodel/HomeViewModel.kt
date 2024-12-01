@@ -1,6 +1,9 @@
 package com.example.pokemonexplorerapp.base.screens.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.models.network.ApiError
@@ -9,8 +12,9 @@ import com.example.domain.models.network.ApiNoInternetError
 import com.example.domain.models.network.ApiSuccess
 import com.example.domain.usecases.ManageFavoritesUseCase
 import com.example.domain.usecases.PokemonUseCase
+import com.example.pokemonexplorerapp.base.composables.DialogData
+import com.example.pokemonexplorerapp.base.theme.CarminePink
 import com.example.pokemonexplorerapp.utils.PokemonFilterType
-import com.example.pokemonexplorerapp.utils.PokemonType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,47 +24,50 @@ import kotlinx.coroutines.launch
 
 data class PokemonCardUI(
     val name: String,
-    val types: List<PokemonType>,
+    val types: List<PokemonFilterType>,
     val spriteUrl: String
 )
 
-class HomeViewModel(
+class
+HomeViewModel(
     private val pokemonUseCase: PokemonUseCase,
-    private val manageFavoritesUseCase: ManageFavoritesUseCase
+    private val manageFavoritesUseCase: ManageFavoritesUseCase,
 ) : ViewModel() {
 
     private val _allPokemonNames =
-        MutableStateFlow<List<String>>(emptyList()) // Pokémon names for search
+        MutableStateFlow<List<String>>(emptyList())
     private val _allPokemonDetails =
-        MutableStateFlow<List<PokemonCardUI>>(emptyList()) // Cached Pokémon details
+        MutableStateFlow<List<PokemonCardUI>>(emptyList())
 
     private val _pokemonList = MutableStateFlow<List<PokemonCardUI>>(emptyList())
-    val pokemonList: StateFlow<List<PokemonCardUI>> get() = _pokemonList
+    val pokemonList: StateFlow<List<PokemonCardUI>> = _pokemonList
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> get() = _isLoading
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _isLoadingMore = MutableStateFlow(false)
-    val isLoadingMore: StateFlow<Boolean> get() = _isLoadingMore
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
 
     private val _hasError = MutableStateFlow<String?>(null)
-    val hasError: StateFlow<String?> get() = _hasError
+    val hasError: StateFlow<String?> = _hasError
 
     private val _searchTerm = MutableStateFlow("")
-    val searchTerm: StateFlow<String> get() = _searchTerm
+    val searchTerm: StateFlow<String> = _searchTerm
+
     private val _selectedFilterType = MutableStateFlow(PokemonFilterType.All)
 
+    private val _dialogData = MutableStateFlow<DialogData?>(null)
+    val dialogData: StateFlow<DialogData?> = _dialogData
 
-    var hasMorePokemon = mutableStateOf(true)
-        private set
+    private var hasMorePokemon = mutableStateOf(true)
 
     private var offset = 0
     private val limit = 10
 
     init {
         viewModelScope.launch {
-            fetchAllPokemonNames() // Fetch Pokémon names
-            fetchInitialPokemonBatch() // Fetch and display the first 10 Pokémon immediately
+            fetchAllPokemonNames()
+            fetchInitialPokemonBatch()
         }
     }
 
@@ -81,10 +88,70 @@ class HomeViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun toggleFavorite(name: String) {
+    fun toggleFavorite(pokemonName: String, isFavorite: Boolean) {
+        if (isFavorite) {
+            // Show confirmation dialog
+            _dialogData.value = DialogData.RemoveFavorite(
+                annotatedString = buildAnnotatedString {
+                    append("Do you want to remove ")
+                    withStyle(SpanStyle(color = CarminePink)) {
+                        append(pokemonName.replaceFirstChar { it.uppercase() })
+                    }
+                    append(" from your favorites?")
+                },
+                primaryCallback = {
+                    removeFavorite(pokemonName)
+                    dismissDialog()
+                },
+                secondaryCallback = {
+                    dismissDialog()
+                }
+            )
+        } else {
+            // Directly add to favorites
+            addFavorite(pokemonName)
+        }
+    }
+
+    private fun dismissDialog() {
+        _dialogData.value = null
+    }
+
+    private fun addFavorite(pokemonName: String) {
         viewModelScope.launch {
-            val isFavorite = favorites.value.contains(name)
-            manageFavoritesUseCase.toggleFavorite(name, isFavorite)
+            manageFavoritesUseCase.toggleFavorite(pokemonName, false)
+        }
+    }
+
+    private fun removeFavorite(pokemonName: String) {
+        viewModelScope.launch {
+            manageFavoritesUseCase.toggleFavorite(pokemonName, true)
+        }
+    }
+
+    private fun searchPokemonByName(name: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                // Check if the Pokémon is already loaded
+                val existingPokemon = _allPokemonDetails.value.find { it.name.equals(name, ignoreCase = true) }
+                if (existingPokemon != null) {
+                    _pokemonList.value = listOf(existingPokemon)
+                } else {
+                    // Fetch details for the searched Pokémon
+                    val pokemonDetails = fetchPokemonDetails(name)
+                    if (pokemonDetails != null) {
+                        _pokemonList.value = listOf(pokemonDetails)
+                        _allPokemonDetails.value += pokemonDetails
+                    } else {
+                        _pokemonList.value = emptyList()
+                    }
+                }
+            } catch (e: Exception) {
+                _hasError.value = "Failed to search Pokémon."
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
@@ -93,7 +160,7 @@ class HomeViewModel(
         try {
             when (val result = pokemonUseCase.getPokemonList(limit = Int.MAX_VALUE, offset = 0)) {
                 is ApiSuccess -> {
-                    _allPokemonNames.value = result.data.orEmpty() // Cache Pokémon names
+                    _allPokemonNames.value = result.data.orEmpty()
                 }
 
                 is ApiError -> _hasError.value = "Failed to fetch Pokémon names."
@@ -121,21 +188,23 @@ class HomeViewModel(
 
     fun updateFilterTypeWithLoading(filterType: PokemonFilterType) {
         viewModelScope.launch {
-            _isLoading.value = true // Show loader
+            _isLoading.value = true
             try {
-                _selectedFilterType.emit(filterType) // Update filter type
-                val filteredBatch = _allPokemonNames.value
-                    .mapNotNull { fetchPokemonDetails(it) } // Filter Pokémon by type
+                _selectedFilterType.emit(filterType)
 
-                // Filter only the Pokémon that match the selected type
-                val filteredPokemons = filteredBatch.filter { pokemon ->
-                    filterType == PokemonFilterType.All || pokemon.types.any { it.displayName == filterType.displayName }
+                val filteredPokemons = _allPokemonDetails.value.filter { pokemon ->
+                    filterType == PokemonFilterType.All || pokemon.types.any { it == filterType }
                 }
+
+                if (filteredPokemons.isEmpty()) {
+                    _hasError.value = "No Pokémon found for the selected category."
+                }
+
                 _pokemonList.value = filteredPokemons
             } catch (e: Exception) {
                 _hasError.value = "Failed to load Pokémon for the selected type."
             } finally {
-                _isLoading.value = false // Hide loader
+                _isLoading.value = false
             }
         }
     }
@@ -143,6 +212,11 @@ class HomeViewModel(
     fun updateSearchTerm(term: String) {
         viewModelScope.launch {
             _searchTerm.emit(term)
+            if (term.isNotEmpty()) {
+                searchPokemonByName(term)
+            } else {
+                _pokemonList.value = _allPokemonDetails.value
+            }
         }
     }
 
@@ -152,40 +226,11 @@ class HomeViewModel(
             val firstBatch = _allPokemonNames.value.take(limit).mapNotNull { fetchPokemonDetails(it) }
             _pokemonList.value = firstBatch
             _allPokemonDetails.value = firstBatch
-            offset = firstBatch.size // Keep track of how many Pokémon have been loaded
+            offset = firstBatch.size
         } catch (e: Exception) {
             _hasError.value = "Failed to fetch initial Pokémon batch."
         } finally {
             _isLoading.value = false
-        }
-    }
-
-    fun fetchPokemonList() {
-        if (_isLoading.value || _isLoadingMore.value || !hasMorePokemon.value) return
-
-        _isLoadingMore.value = true // Always show the loading state when "Load More" is clicked
-        _hasError.value = null // Reset any previous errors
-
-        viewModelScope.launch {
-            try {
-                // Fetch the next batch of Pokémon
-                val nextBatch = _allPokemonNames.value.drop(offset).take(limit)
-                    .mapNotNull { fetchPokemonDetails(it) }
-
-                // Append the new batch to the existing list
-                _pokemonList.value += nextBatch
-                _allPokemonDetails.value += nextBatch
-                offset += nextBatch.size
-
-                // Check if there are more Pokémon to load
-                if (nextBatch.size < limit) {
-                    hasMorePokemon.value = false
-                }
-            } catch (e: Exception) {
-                _hasError.value = "Failed to load more Pokémon."
-            } finally {
-                _isLoadingMore.value = false
-            }
         }
     }
 
@@ -196,32 +241,32 @@ class HomeViewModel(
                 val data = result.data
                 if (data != null) {
                     val types = data.types.mapNotNull { mapToPokemonType(it.type.name) }
-                    if (types.isNotEmpty()) { // Only include Pokémon with valid types
+                    if (types.isNotEmpty()) {
                         PokemonCardUI(
                             name = data.name,
                             types = types,
                             spriteUrl = data.sprites.frontDefault ?: ""
                         )
-                    } else null // Exclude Pokémon with no valid types
+                    } else null
                 } else null
             }
             else -> null
         }
     }
 
-    private fun mapToPokemonType(typeName: String): PokemonType? {
+    private fun mapToPokemonType(typeName: String): PokemonFilterType? {
         return when (typeName.lowercase()) {
-            "grass" -> PokemonType.Grass
-            "steel" -> PokemonType.Steel
-            "fire" -> PokemonType.Fire
-            "water" -> PokemonType.Water
-            "electric" -> PokemonType.Electric
-            "dragon" -> PokemonType.Dragon
-            "psychic" -> PokemonType.Psychic
-            "ghost" -> PokemonType.Ghost
-            "dark" -> PokemonType.Dark
-            "fairy" -> PokemonType.Fairy
-            else -> null // Return null for unknown types
+            "grass" -> PokemonFilterType.Grass
+            "steel" -> PokemonFilterType.Steel
+            "fire" -> PokemonFilterType.Fire
+            "water" -> PokemonFilterType.Water
+            "electric" -> PokemonFilterType.Electric
+            "dragon" -> PokemonFilterType.Dragon
+            "psychic" -> PokemonFilterType.Psychic
+            "ghost" -> PokemonFilterType.Ghost
+            "dark" -> PokemonFilterType.Dark
+            "fairy" -> PokemonFilterType.Fairy
+            else -> null
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.pokemonexplorerapp.base.composables
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,22 +23,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokemonexplorerapp.R
-import com.example.pokemonexplorerapp.utils.PokemonType
+import com.example.pokemonexplorerapp.utils.PokemonFilterType
 import com.example.pokemonexplorerapp.utils.capitalizeFirstLetter
 import com.example.pokemonexplorerapp.utils.setNoRippleClickable
 
 @Composable
 fun PokemonCard(
     name: String,
-    types: List<PokemonType>,
+    types: List<PokemonFilterType>,
     imageUrl: String,
     isFavorite: Boolean,
-    onLikeClicked: (Boolean) -> Unit,
+    onLikeClicked: (String, Boolean) -> Unit,
     onClick: () -> Unit
 ) {
     val mainType = types.first()
@@ -72,18 +72,17 @@ fun PokemonCard(
             PokemonImageCard(
                 color = mainType.color,
                 isFavorite = isFavorite,
-                onFavoriteClick = onLikeClicked,
+                onFavoriteClick = { onLikeClicked(name, isFavorite) },
                 imageUrl = imageUrl
             )
         }
     }
 }
 
-
 @Composable
 private fun PokemonTextSection(
     name: String,
-    types: List<PokemonType>,
+    types: List<PokemonFilterType>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -101,7 +100,9 @@ private fun PokemonTextSection(
             text = name,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = Color.Black,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1
         )
         Spacer(modifier = Modifier.height(10.dp))
         // Pokemon Types
@@ -113,22 +114,6 @@ private fun PokemonTextSection(
                 PokemonTypeBadge(type = type)
             }
         }
-    }
-}
-
-@Composable
-private fun PokemonTypeBadge(type: PokemonType) {
-    Box(
-        modifier = Modifier
-            .background(type.color, shape = RoundedCornerShape(15.dp))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = type.displayName,
-            color = Color.Black,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
     }
 }
 

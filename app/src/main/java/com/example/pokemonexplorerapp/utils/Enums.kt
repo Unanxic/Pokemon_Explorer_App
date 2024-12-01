@@ -26,16 +26,3 @@ enum class PokemonFilterType(val displayName: String, val color: Color) {
     Steel("Steel", PetrolBlue),
     Fairy("Fairy", AmethystPurple)
 }
-
-enum class PokemonType(val displayName: String, val color: Color) {
-    Fire("Fire", PastelOrange),
-    Water("Water", HavelockBlue),
-    Grass("Grass", AppleGreen),
-    Electric("Electric", Sandstorm),
-    Dragon("Dragon", BlueEyes),
-    Psychic("Psychic", LightFuchsiaPink),
-    Ghost("Ghost", MidnightBlue),
-    Dark("Dark", Dune),
-    Steel("Steel", PetrolBlue),
-    Fairy("Fairy", AmethystPurple)
-}

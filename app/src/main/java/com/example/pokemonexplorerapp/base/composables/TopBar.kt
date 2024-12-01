@@ -27,10 +27,7 @@ import com.example.pokemonexplorerapp.utils.setNoRippleClickable
 fun TopBar(
     title: String,
     onBackClick: () -> Unit = {},
-    showBackButton: Boolean = false,
-    showFavoriteIcon: Boolean = false,
-    isFavorite: Boolean = false,
-    onFavoriteClick: () -> Unit = {}
+    showBackButton: Boolean = false
 ) {
     Box(
         modifier = Modifier
@@ -56,15 +53,6 @@ fun TopBar(
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold
         )
-        if (showFavoriteIcon){
-            FavoriteIcon(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp),
-                isFavorite = isFavorite,
-                onClick = onFavoriteClick
-            )
-        }
     }
 }
 
@@ -87,20 +75,4 @@ private fun BackButton(
             colorFilter = ColorFilter.tint(Color.Black)
         )
     }
-}
-
-@Composable
-private fun FavoriteIcon(
-    modifier: Modifier,
-    isFavorite: Boolean,
-    onClick: () -> Unit
-) {
-    val iconRes = if (isFavorite) R.drawable.favorite_filled else R.drawable.favorite
-    Image(
-        painter = painterResource(id = iconRes),
-        contentDescription = if (isFavorite) "Unfavorite" else "Favorite",
-        modifier = modifier
-            .testTag("favorite_icon")
-            .setNoRippleClickable(onClick = onClick),
-    )
 }
