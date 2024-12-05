@@ -4,7 +4,6 @@ import com.example.pokemonexplorerapp.base.navigation.Screen
 
 /**
  * This method returns a [Screen] which should be the next screen to navigate to.
- * The sequence is [Screen.Splash] -> [Screen.Welcome] -> [Screen.Login] -> [Screen.OnBoarding] -> [Screen.Home]
  * Also skips any screen that need skipping.
  */
 suspend fun decideWhereToNavigateNext(currentScreen: Screen? = null): Screen {
